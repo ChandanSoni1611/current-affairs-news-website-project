@@ -7,6 +7,7 @@ const CFG = {
   FALLBACK_SOURCE_INDIA: "google-news-in",
   FALLBACK_COUNTRY: "us",
   PAGE_SIZE: 8,
+  CHUNK_SIZE: 4,
 };
 
 const TOP_SECTIONS = [
@@ -41,7 +42,7 @@ const GLOBAL_COUNTRIES = [
   { country: "jp", label: "Japan", flag: "🇯🇵" },
 ];
 
-const S = { tab: "top", loaded: new Set(), page: {}, totalRes: {} };
+const S = { tab: "top", loaded: new Set() };
 
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelectorAll(sel);
@@ -79,6 +80,15 @@ function timeAgo(d) {
 function cut(s, n) { return s && s.length > n ? s.slice(0, n - 1) + "…" : (s || ""); }
 function safeText(v, fb = "") {
   return String(v ?? fb).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function safeUrl(url, fallback = "#") {
+  if (!url) return fallback;
+  try {
+    const u = new URL(url, window.location.origin);
+    return ["http:", "https:"].includes(u.protocol) ? u.toString() : fallback;
+  } catch {
+    return fallback;
+  }
 }
 function skCards(n = 4) { return Array(n).fill('<div class="art-skeleton"></div>').join(""); }
 function normalizeArticle(a) {
@@ -166,16 +176,18 @@ async function loadTicker() {
 
 /* ── article card ── */
 function buildCard(a, color = "var(--ice-500)", idx = 0) {
+  const articleUrl = safeUrl(a.url);
+  const imageUrl = safeUrl(a.image, "");
   const card = document.createElement("div");
   card.className = "art-card";
   card.style.animationDelay = `${idx * 0.055}s`;
   card.style.setProperty("--sec-color", color);
   const title  = safeText(cut(a.title, 100));
   const source = safeText(a.source || "Unknown");
-  if (a.image) {
+  if (imageUrl) {
     card.innerHTML = `
       <div class="art-img">
-        <img src="${a.image}" alt="${title}" loading="lazy"
+        <img src="${imageUrl}" alt="${title}" loading="lazy"
              onerror="this.closest('.art-card').classList.add('no-image');this.parentElement.remove();" />
         <span class="art-cat-badge">${source}</span>
       </div>
@@ -184,7 +196,7 @@ function buildCard(a, color = "var(--ice-500)", idx = 0) {
         <div class="art-title">${title}</div>
         <div class="art-foot">
           <span>${timeAgo(a.time)}</span>
-          <a class="art-read" href="${a.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read →</a>
+          <a class="art-read" href="${articleUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read →</a>
         </div>
       </div>`;
   } else {
@@ -195,11 +207,11 @@ function buildCard(a, color = "var(--ice-500)", idx = 0) {
         <div class="art-title">${title}</div>
         <div class="art-foot">
           <span>${timeAgo(a.time)}</span>
-          <a class="art-read" href="${a.url}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read →</a>
+          <a class="art-read" href="${articleUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Read →</a>
         </div>
       </div>`;
   }
-  card.addEventListener("click", () => window.open(a.url, "_blank"));
+  if (articleUrl !== "#") card.addEventListener("click", () => window.open(articleUrl, "_blank"));
   return card;
 }
 
@@ -222,10 +234,12 @@ async function loadHero() {
     const lead         = arts[0];
     const sideArticles = arts.slice(1, 3);   // always grab 2
 
+    const leadUrl = safeUrl(lead.url);
+    const leadImageUrl = safeUrl(lead.image, "");
     D.heroSection.innerHTML = `
       <div class="hero-grid-fill">
-        <div class="hero-lead" onclick="window.open('${lead.url}','_blank')">
-          ${lead.image ? `<img src="${lead.image}" alt="${safeText(lead.title)}" onerror="this.remove()" />` : ""}
+        <div class="hero-lead" ${leadUrl !== "#" ? `onclick="window.open('${leadUrl}','_blank')"` : ""}>
+          ${leadImageUrl ? `<img src="${leadImageUrl}" alt="${safeText(lead.title)}" onerror="this.remove()" />` : ""}
           <div class="hero-lead-overlay"></div>
           <div class="hero-lead-body">
             <span class="hero-lead-cat">Top Story</span>
@@ -246,16 +260,18 @@ async function loadHero() {
     /* ── populate sidebar with 2 mini-cards ── */
     const side = $("heroSideFill");
     sideArticles.forEach(a => {
+      const url = safeUrl(a.url);
+      const imageUrl = safeUrl(a.image, "");
       const el = document.createElement("div");
       el.className = "hero-mini-card";
       el.innerHTML = `
-        ${a.image ? `<div class="hero-mini-img"><img src="${a.image}" alt="${safeText(a.title)}" loading="lazy" onerror="this.parentElement.remove()" /></div>` : ""}
+        ${imageUrl ? `<div class="hero-mini-img"><img src="${imageUrl}" alt="${safeText(a.title)}" loading="lazy" onerror="this.parentElement.remove()" /></div>` : ""}
         <div class="hero-mini-body">
           <div class="hero-mini-src">${safeText(a.source||"News")}</div>
           <h3>${safeText(cut(a.title, 95))}</h3>
           <div class="hero-mini-meta">${timeAgo(a.time)}</div>
         </div>`;
-      el.addEventListener("click", () => window.open(a.url, "_blank"));
+      if (url !== "#") el.addEventListener("click", () => window.open(url, "_blank"));
       side.appendChild(el);
     });
 
@@ -301,7 +317,6 @@ async function loadTopStream() {
         const grid = $(`sg-${sec.id}`);
         const btn  = $(`more-${sec.id}`);
         const all  = d.articles || [];
-        let shown  = 0;
 
         grid.innerHTML = "";
 
@@ -310,17 +325,13 @@ async function loadTopStream() {
           return;
         }
 
-        /* append next batch of up to 4 cards */
-        function appendChunk() {
-          const chunk = all.slice(shown, shown + 4);
-          chunk.forEach((a, i) => grid.appendChild(buildCard(a, sec.color, shown + i)));
-          shown += chunk.length;
-          btn.style.display = shown < all.length ? "inline-block" : "none";
-        }
-
-        appendChunk();   // first 4
-
-        btn.addEventListener("click", appendChunk);
+        renderPaginatedGrid({
+          grid,
+          button: btn,
+          buttonLabel: `More ${sec.label} News`,
+          articles: all,
+          color: sec.color
+        });
 
         const cnt = $(`sc-${sec.id}`);
         if (cnt) cnt.textContent = `${all.length}`;
@@ -359,7 +370,6 @@ async function loadCategoryPanel(tabId) {
     const grid = $(`cg-${tabId}`);
     const btn  = $(`cl-${tabId}`);
     const all  = d.articles || [];
-    let shown  = 0;
 
     grid.innerHTML = "";
 
@@ -368,22 +378,34 @@ async function loadCategoryPanel(tabId) {
       return;
     }
 
-    function appendChunk() {
-      const chunk = all.slice(shown, shown + 4);
-      chunk.forEach((a, i) => grid.appendChild(buildCard(a, cfg.color, shown + i)));
-      shown += chunk.length;
-      btn.style.display = shown < all.length ? "inline-block" : "none";
-    }
-
-    appendChunk();   // first 4
-
-    btn.addEventListener("click", appendChunk);
+    renderPaginatedGrid({
+      grid,
+      button: btn,
+      buttonLabel: `More ${cfg.label} News`,
+      articles: all,
+      color: cfg.color
+    });
 
     const count = $(`cc-${tabId}`);
     if (count) count.textContent = `${all.length} stories`;
   } catch(e) {
     panel.innerHTML = `<div class="err-state"><h3>${safeText(e.message)}</h3></div>`;
   }
+}
+
+function renderPaginatedGrid({ grid, button, buttonLabel, articles, color }) {
+  let shown = 0;
+  if (button && buttonLabel) button.textContent = buttonLabel;
+
+  function appendChunk() {
+    const chunk = articles.slice(shown, shown + CFG.CHUNK_SIZE);
+    chunk.forEach((a, i) => grid.appendChild(buildCard(a, color, shown + i)));
+    shown += chunk.length;
+    if (button) button.style.display = shown < articles.length ? "inline-block" : "none";
+  }
+
+  appendChunk();
+  button?.addEventListener("click", appendChunk);
 }
 
 /* ── global panel ── */
@@ -471,7 +493,7 @@ function initSearch() {
         <div class="cat-header" style="--sec-color:var(--ice-500)"><div class="cat-dot"></div><h1>Search Results</h1></div>
         <div class="sec-grid" id="search-grid">${skCards(8)}</div>
       </div>`;
-    switchTab("top");
+    await switchTab("top");
     try {
       const data = await fetchJson(`${CFG.BASE}?q=${encodeURIComponent(q)}&country=us&pageSize=8&apiKey=${CFG.API_KEY}`);
       const arts = cleanArticles(data.articles || []);
