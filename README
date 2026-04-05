@@ -1,0 +1,96 @@
+# NewsWave 🌊
+> A sleek, dark-themed news website powered by NewsAPI
+
+---
+
+## 📁 Project Structure
+
+```
+newswave/
+├── index.html              ← Home page
+├── css/
+│   └── style.css           ← Main stylesheet
+├── js/
+│   └── main.js             ← Core logic (API, scroll, pill nav)
+└── authentication/
+    ├── login.html          ← Login page
+    ├── signup.html         ← Sign up page
+    ├── auth.css            ← Auth stylesheet (shared)
+    └── auth.js             ← Auth form validation logic
+```
+
+---
+
+## ⚡ Quick Setup
+
+### 1. Add your NewsAPI key
+
+Open `js/main.js` and replace the placeholder on line 10:
+
+```js
+const CONFIG = {
+  API_KEY: "YOUR_NEWSAPI_KEY_HERE",   // ← paste your key here
+  ...
+};
+```
+
+Get a free key at: https://newsapi.org
+
+### 2. Open the project
+
+Just open `index.html` in a browser.
+
+> **Note:** NewsAPI free tier only allows requests from localhost.
+> For production, you'll need a backend proxy to hide your API key.
+
+---
+
+## 🎨 Features
+
+### Navigation
+- **Pill navbar** — Fixed at the top, never changes colour. Contains category links: Top, Tech, Sports, Entertainment, Business, Science, Health.
+- **Glass navbar** — Sits below the pill bar. Transparent when at the top, activates glass blur/colour when scrolling. Tint colour adapts to the current section.
+
+### Home Page
+- Animated hero with ambient orb background
+- Featured article card (pulled from API)
+- Breaking news ticker (auto-scrolling)
+- Responsive 3-column news grid
+- Skeleton loading states
+- Load More pagination
+- Search overlay (keyboard shortcut: click the search icon)
+- Mobile hamburger menu
+
+### Authentication
+- Login page with email + password validation
+- Signup page with:
+  - Name fields
+  - Password strength meter
+  - Confirm password matching
+  - Terms checkbox
+- Social login buttons (Google, GitHub — wire up OAuth)
+- Forgot password flow
+- Form alert messages (success / error)
+
+---
+
+## 🔧 Customisation
+
+### Change default country
+In `js/main.js`:
+```js
+COUNTRY: "in",   // "us", "gb", "au", etc.
+```
+
+### Change categories in pill bar
+In `index.html`, edit the `.pill-link` elements.
+
+### Connect real auth
+In `authentication/auth.js`, replace `simulateApiCall()` with your actual backend, Firebase, Supabase, or Auth0 calls.
+
+---
+
+## 🌐 API Notes
+
+- NewsAPI free tier: 100 requests/day, localhost only
+- For deployment: use a serverless function (Vercel, Netlify) to proxy API requests and keep your key safe.

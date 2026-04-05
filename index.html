@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Current Affairs — Breaking News</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Google Sans via Nunito (closest open equivalent) + actual Google Sans for supported environments -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       GEL GLASS NAVBAR
+       ═══════════════════════════════════════════ -->
+  <header class="navbar" id="navbar">
+    <div class="navbar-inner">
+
+      <!-- Brand (left) -->
+      <a href="index.html" class="brand">
+        <div class="brand-orb">
+          <span>CA</span>
+        </div>
+        <span class="brand-text">Current Affairs</span>
+      </a>
+
+      <!-- Tabs (center) -->
+      <nav class="tab-bar" id="tabBar" role="tablist" aria-label="News sections">
+        <button class="tab active" data-tab="top"           role="tab" aria-selected="true">Top News</button>
+        <button class="tab"        data-tab="india"         role="tab">India</button>
+        <button class="tab"        data-tab="global"        role="tab">Global</button>
+        <button class="tab"        data-tab="business"      role="tab">Business</button>
+        <button class="tab"        data-tab="technology"    role="tab">Technology</button>
+        <button class="tab"        data-tab="entertainment" role="tab">Entertainment</button>
+        <button class="tab"        data-tab="climate"       role="tab">Climate</button>
+        <button class="tab"        data-tab="sports"        role="tab">Sports</button>
+        <button class="tab"        data-tab="health"        role="tab">Health</button>
+        <span class="tab-slider" id="tabSlider"></span>
+      </nav>
+
+      <!-- Right cluster -->
+      <div class="nav-right">
+
+        <!-- Weather -->
+        <div class="weather-chip" id="weatherChip" title="Weather at your location">
+          <span class="w-spinner" id="wSpinner"></span>
+          <div class="w-info" id="wInfo" style="display:none">
+            <span class="w-icon"  id="wIcon">☁️</span>
+            <span class="w-temp"  id="wTemp">--°</span>
+            <span class="w-loc"   id="wLoc">…</span>
+          </div>
+        </div>
+
+        <div class="nav-sep"></div>
+
+        <!-- Auth -->
+        <a href="authentication/login.html"  class="nav-login">Log In</a>
+        <a href="authentication/signup.html" class="nav-signup">Sign Up</a>
+
+        <!-- Hamburger -->
+        <button class="ham" id="ham" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile tab strip (scrollable) -->
+    <div class="mob-tabs" id="mobTabs">
+      <button class="mtab active" data-tab="top">Top</button>
+      <button class="mtab" data-tab="india">India</button>
+      <button class="mtab" data-tab="global">Global</button>
+      <button class="mtab" data-tab="business">Business</button>
+      <button class="mtab" data-tab="technology">Tech</button>
+      <button class="mtab" data-tab="entertainment">Ent.</button>
+      <button class="mtab" data-tab="climate">Climate</button>
+      <button class="mtab" data-tab="sports">Sports</button>
+      <button class="mtab" data-tab="health">Health</button>
+    </div>
+  </header>
+
+  <!-- Mobile menu drawer -->
+  <div class="mob-drawer" id="mobDrawer">
+    <a href="authentication/login.html"  class="md-link">Log In</a>
+    <a href="authentication/signup.html" class="md-link md-primary">Sign Up</a>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       BREAKING TICKER
+       ═══════════════════════════════════════════ -->
+  <div class="ticker">
+    <span class="tick-badge">LIVE</span>
+    <div class="tick-track"><div class="tick-inner" id="tickerInner">Fetching headlines…</div></div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       SEARCH + DATE STRIP
+       ═══════════════════════════════════════════ -->
+  <div class="search-bar-wrap">
+    <div class="search-bar-inner">
+      <div class="search-field">
+        <svg viewBox="0 0 24 24" class="s-icon"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Search stories, topics, people…" autocomplete="off" />
+        <button id="sClear" class="s-clear" aria-label="Clear" style="display:none">×</button>
+      </div>
+      <div class="date-chip" id="dateChip"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       TAB PANELS
+       ═══════════════════════════════════════════ -->
+  <main class="main" id="main">
+
+    <!-- TOP NEWS panel: hero + sectioned stream -->
+    <div class="panel active" id="panel-top">
+      <section class="hero-section" id="heroSection">
+        <!-- Hero grid filled by JS -->
+        <div class="hero-skeletons">
+          <div class="sk hero-sk-lead"></div>
+          <div class="sk-col">
+            <div class="sk hero-sk-sub"></div>
+            <div class="sk hero-sk-sub"></div>
+          </div>
+        </div>
+      </section>
+      <div class="stream" id="streamTop"></div>
+    </div>
+
+    <!-- Single-category panels -->
+    <div class="panel" id="panel-india"></div>
+    <div class="panel" id="panel-global"></div>
+    <div class="panel" id="panel-business"></div>
+    <div class="panel" id="panel-technology"></div>
+    <div class="panel" id="panel-entertainment"></div>
+    <div class="panel" id="panel-climate"></div>
+    <div class="panel" id="panel-sports"></div>
+    <div class="panel" id="panel-health"></div>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+       ═══════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="f-brand">
+        <div class="brand-orb sm"><span>CA</span></div>
+        <div>
+          <div class="brand-text">Current Affairs</div>
+          <p>Real news. Right now.</p>
+        </div>
+      </div>
+      <div class="f-links">
+        <div class="f-col"><h5>Sections</h5>
+          <a href="#">Top News</a><a href="#">India</a><a href="#">Global</a><a href="#">Sports</a>
+        </div>
+        <div class="f-col"><h5>Topics</h5>
+          <a href="#">Technology</a><a href="#">Business</a><a href="#">Climate</a><a href="#">Health</a>
+        </div>
+        <div class="f-col"><h5>Company</h5>
+          <a href="#">About</a><a href="#">Contact</a><a href="#">Careers</a><a href="#">Advertise</a>
+        </div>
+        <div class="f-col"><h5>Account</h5>
+          <a href="authentication/login.html">Log In</a>
+          <a href="authentication/signup.html">Sign Up</a>
+          <a href="#">Newsletter</a>
+        </div>
+      </div>
+    </div>
+    <div class="f-bar">
+      <span>© 2026 Current Affairs · Powered by NewsAPI</span>
+      <span><a href="#">Privacy</a> · <a href="#">Terms</a></span>
+    </div>
+  </footer>
+
+  <script src="index.js"></script>
+</body>
+</html>
